@@ -3,11 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>📁 Share+QR · Chunked · Mobile</title>
-    <!-- html5-qrcode -->
+    <title>📁 Share+QR · Chunk · Timer</title>
     <script src="https://unpkg.com/html5-qrcode" minified></script>
     <style>
-        /* Gaya sama seperti sebelumnya – minimalis, responsif */
         * {
             margin: 0;
             padding: 0;
@@ -37,6 +35,7 @@
             color: #3e5e7e; margin-bottom: 24px; font-size: 15px;
             border-left: 5px solid #2e7eb0; padding-left: 16px;
             display: flex; justify-content: space-between; align-items: center;
+            flex-wrap: wrap;
         }
         .btn-scan {
             background: #0b2b4a; color: white; border: none; padding: 10px 20px;
@@ -129,11 +128,10 @@
     <div class="container">
         <h1>📁 Share+QR · Chunked</h1>
         <div class="sub">
-            <span>🔒 File disimpan di browser ini. Link berlaku di perangkat yang sama.<br>⏰ Expired otomatis. 📱 Khusus HP: file besar di-chunk 1MB.</span>
+            <span>🔒 File di browser ini. QR hanya berlaku di perangkat yang sama.<br>⏰ Waktu expired otomatis (format jam:menit:detik)</span>
             <button id="scanQrBtn" class="btn-scan">📷 Scan QR</button>
         </div>
 
-        <!-- UPLOAD CARD -->
         <div class="upload-card">
             <div class="area-upload">
                 <label for="fileInput" class="btn btn-primary">
@@ -167,7 +165,6 @@
             <div id="uploadMessage" style="margin-top: 16px; color: #2e7eb0;"></div>
         </div>
 
-        <!-- DAFTAR FILE -->
         <div class="file-list">
             <div class="file-header">
                 <h3>📋 File tersimpan</h3>
@@ -179,7 +176,7 @@
                 </div>
             </div>
         </div>
-        <div class="footer">⚡ OXYX · CHUNKED 1MB · EXPIRED OTOMATIS · QR</div>
+        <div class="footer">⚡ OXYX · CHUNK 1MB · QR · COUNTDOWN JAM/MENIT/DETIK</div>
     </div>
 
     <!-- MODAL QR -->
@@ -203,10 +200,10 @@
             "use strict";
 
             // ========== INDEXEDDB DENGAN CHUNKING ==========
-            const DB_NAME = 'ExpireFileChunked';
-            const DB_VERSION = 2;        // upgrade karena schema baru
-            const STORE_FILES = 'files';     // metadata
-            const STORE_CHUNKS = 'chunks';   // chunk data
+            const DB_NAME = 'ExpireFileChunkedV2';
+            const DB_VERSION = 2;
+            const STORE_FILES = 'files';
+            const STORE_CHUNKS = 'chunks';
 
             let db = null;
 
@@ -221,14 +218,13 @@
                     };
                     request.onupgradeneeded = (e) => {
                         const db = e.target.result;
-                        // store untuk metadata file
                         if (!db.objectStoreNames.contains(STORE_FILES)) {
                             const fileStore = db.createObjectStore(STORE_FILES, { keyPath: 'id' });
                             fileStore.createIndex('expiresAt', 'expiresAt', { unique: false });
                         }
-                        // store untuk chunk
                         if (!db.objectStoreNames.contains(STORE_CHUNKS)) {
-                            db.createObjectStore(STORE_CHUNKS, { keyPath: 'chunkId' });
+                            const chunkStore = db.createObjectStore(STORE_CHUNKS, { keyPath: 'chunkId' });
+                            chunkStore.createIndex('fileId', 'fileId', { unique: false }); // penting untuk hapus cepat
                         }
                     };
                 });
@@ -239,7 +235,7 @@
                 await openDB();
                 const fileId = Date.now() + '-' + Math.random().toString(36).substring(2) + '-' + file.name;
                 const expiresAt = Date.now() + (expiresInSeconds * 1000);
-                const chunkSize = 1024 * 1024; // 1MB per chunk
+                const chunkSize = 1024 * 1024; // 1MB
                 const totalChunks = Math.ceil(file.size / chunkSize);
                 let chunksSaved = 0;
 
@@ -248,7 +244,6 @@
                     const fileStore = transaction.objectStore(STORE_FILES);
                     const chunkStore = transaction.objectStore(STORE_CHUNKS);
 
-                    // Simpan metadata
                     const fileMetadata = {
                         id: fileId,
                         name: file.name,
@@ -261,15 +256,13 @@
                     };
                     fileStore.put(fileMetadata);
 
-                    // Baca file dan simpan chunk
-                    const reader = new FileReader();
                     let offset = 0;
                     let chunkIndex = 0;
+                    const reader = new FileReader();
 
                     reader.onload = function(e) {
                         const arrayBuffer = e.target.result;
                         const uint8Array = new Uint8Array(arrayBuffer);
-                        
                         const chunkId = `${fileId}-chunk-${chunkIndex}`;
                         chunkStore.put({
                             chunkId: chunkId,
@@ -284,23 +277,18 @@
 
                         if (offset < file.size) {
                             readNextChunk();
-                        } else {
-                            // update progress via transaction complete
                         }
 
-                        // Update progress (dikirim ke luar)
                         if (window.onUploadProgress) {
                             window.onUploadProgress({
-                                percent: Math.round((chunksSaved / totalChunks) * 100),
+                                percent: Math.floor((chunksSaved / totalChunks) * 100),
                                 chunksSaved,
                                 totalChunks
                             });
                         }
                     };
 
-                    reader.onerror = function(err) {
-                        reject(err);
-                    };
+                    reader.onerror = (err) => reject(err);
 
                     function readNextChunk() {
                         const slice = file.slice(offset, offset + chunkSize);
@@ -309,91 +297,80 @@
 
                     readNextChunk();
 
-                    transaction.oncomplete = () => {
-                        resolve(fileId);
-                    };
+                    transaction.oncomplete = () => resolve(fileId);
                     transaction.onerror = (e) => reject(e.target.error);
                 });
             }
 
-            // Ambil file (gabung chunk)
+            // Ambil file + gabung chunk
             async function getFileChunked(fileId) {
                 await openDB();
                 return new Promise((resolve, reject) => {
                     const transaction = db.transaction([STORE_FILES, STORE_CHUNKS], 'readonly');
                     const fileStore = transaction.objectStore(STORE_FILES);
                     const chunkStore = transaction.objectStore(STORE_CHUNKS);
+                    const index = chunkStore.index('fileId');
 
                     const fileReq = fileStore.get(fileId);
                     fileReq.onsuccess = async function(e) {
                         const metadata = e.target.result;
-                        if (!metadata) {
-                            resolve(null);
-                            return;
-                        }
+                        if (!metadata) { resolve(null); return; }
 
-                        const totalChunks = metadata.totalChunks;
-                        const chunks = [];
-
-                        for (let i = 0; i < totalChunks; i++) {
-                            const chunkId = `${fileId}-chunk-${i}`;
-                            const chunkReq = chunkStore.get(chunkId);
-                            await new Promise((res) => { chunkReq.onsuccess = res; });
-                            if (chunkReq.result) {
-                                chunks.push(chunkReq.result.data);
-                            } else {
-                                reject(new Error(`Chunk ${i} hilang`));
+                        const chunksReq = index.getAll(fileId);
+                        chunksReq.onsuccess = function(e) {
+                            const chunks = e.target.result;
+                            if (chunks.length !== metadata.totalChunks) {
+                                reject(new Error('Chunk tidak lengkap'));
                                 return;
                             }
-                        }
-
-                        // Gabung semua chunk jadi Blob
-                        const totalLength = chunks.reduce((acc, chunk) => acc + chunk.length, 0);
-                        const fullArray = new Uint8Array(totalLength);
-                        let offset = 0;
-                        for (let chunk of chunks) {
-                            fullArray.set(chunk, offset);
-                            offset += chunk.length;
-                        }
-                        const blob = new Blob([fullArray], { type: metadata.type });
-                        resolve({
-                            ...metadata,
-                            blob: blob
-                        });
+                            // urutkan berdasarkan index
+                            chunks.sort((a,b) => a.index - b.index);
+                            const totalLength = chunks.reduce((acc, c) => acc + c.data.length, 0);
+                            const fullArray = new Uint8Array(totalLength);
+                            let offset = 0;
+                            for (let c of chunks) {
+                                fullArray.set(c.data, offset);
+                                offset += c.data.length;
+                            }
+                            const blob = new Blob([fullArray], { type: metadata.type });
+                            resolve({
+                                ...metadata,
+                                blob: blob
+                            });
+                        };
+                        chunksReq.onerror = (e) => reject(e.target.error);
                     };
                     fileReq.onerror = (e) => reject(e.target.error);
                 });
             }
 
-            // Hapus file + semua chunk-nya
+            // Hapus file + semua chunk
             async function deleteFileChunked(fileId) {
                 await openDB();
                 return new Promise((resolve, reject) => {
                     const transaction = db.transaction([STORE_FILES, STORE_CHUNKS], 'readwrite');
                     const fileStore = transaction.objectStore(STORE_FILES);
                     const chunkStore = transaction.objectStore(STORE_CHUNKS);
+                    const index = chunkStore.index('fileId');
 
-                    // Hapus metadata
                     fileStore.delete(fileId);
 
-                    // Hapus semua chunk (pakai cursor)
-                    const index = chunkStore.index('fileId'); // perlu bikin index? lebih simple: cursor semua dan filter
-                    // Gak punya index, jadi kita pakai pendekatan: get all keys, cari yang startsWith
-                    // Alternatif: saat upgrade, buat index. Tapi biar simple, kita lakukan di kode manual.
-                    // Solusi: simpan dengan prefix, lalu hapus dengan range.
-                    const range = IDBKeyRange.bound(
-                        `${fileId}-chunk-`,
-                        `${fileId}-chunk-\uffff`,
-                        false, false
-                    );
-                    chunkStore.delete(range);
-                    
+                    const range = IDBKeyRange.only(fileId);
+                    const chunksReq = index.openCursor(range);
+                    chunksReq.onsuccess = function(e) {
+                        const cursor = e.target.result;
+                        if (cursor) {
+                            chunkStore.delete(cursor.primaryKey);
+                            cursor.continue();
+                        }
+                    };
+
                     transaction.oncomplete = () => resolve();
                     transaction.onerror = (e) => reject(e.target.error);
                 });
             }
 
-            // Ambil semua metadata file (tidak termasuk blob)
+            // Ambil semua metadata file
             async function getAllFilesMetadata() {
                 await openDB();
                 return new Promise((resolve, reject) => {
@@ -415,6 +392,23 @@
                     }
                 }
                 return files.filter(f => f.expiresAt > now).length;
+            }
+
+            // ========== UTILS FORMAT WAKTU ==========
+            function formatTimeRemaining(ms) {
+                if (ms <= 0) return '⏹️ Expired';
+                const totalSeconds = Math.floor(ms / 1000);
+                const days = Math.floor(totalSeconds / 86400);
+                const hours = Math.floor((totalSeconds % 86400) / 3600);
+                const minutes = Math.floor((totalSeconds % 3600) / 60);
+                const seconds = totalSeconds % 60;
+
+                let parts = [];
+                if (days > 0) parts.push(`${days} hari`);
+                if (hours > 0) parts.push(`${hours} jam`);
+                if (minutes > 0) parts.push(`${minutes} menit`);
+                if (seconds > 0) parts.push(`${seconds} detik`);
+                return `⏳ ${parts.join(' ')}`;
             }
 
             // ========== UI & GLOBAL ==========
@@ -440,7 +434,6 @@
             const scanQrBtn = document.getElementById('scanQrBtn');
             const scannerContainer = document.getElementById('qr-scanner-container');
             const closeScanner = document.getElementById('closeScanner');
-            const readerElement = document.getElementById('reader');
             let html5QrCode = null;
 
             // ========== UTILS ==========
@@ -465,7 +458,6 @@
                 const files = await getAllFilesMetadata();
                 const now = Date.now();
                 const validFiles = files.filter(f => f.expiresAt > now);
-                // Hapus expired di background
                 for (let f of files) {
                     if (f.expiresAt <= now) {
                         await deleteFileChunked(f.id);
@@ -483,20 +475,14 @@
                 validFiles.sort((a,b) => b.uploadedAt - a.uploadedAt);
                 let html = '';
                 validFiles.forEach(file => {
-                    const expiresInMs = file.expiresAt - now;
-                    const expiresInSec = Math.floor(expiresInMs / 1000);
-                    const minutes = Math.floor(expiresInSec / 60);
-                    const seconds = expiresInSec % 60;
-                    let timeText = expiresInSec <= 0 ? '⏹️ Expired' : 
-                        (minutes > 0 ? `⏳ ${minutes}m ${seconds}d` : `⏳ ${seconds}d`);
-                    
+                    const timeRemaining = formatTimeRemaining(file.expiresAt - now);
                     html += `
                         <div class="file-item" data-file-id="${escapeHtml(file.id)}">
                             <div class="file-info">
                                 <div class="file-name">📄 ${escapeHtml(file.name)}</div>
                                 <div class="file-meta">
                                     <span>${formatBytes(file.size)}</span>
-                                    <span class="countdown">${timeText}</span>
+                                    <span class="countdown">${timeRemaining}</span>
                                 </div>
                             </div>
                             <div style="display:flex; gap:8px; flex-wrap:wrap;">
@@ -510,16 +496,15 @@
                 fileListContainer.innerHTML = html;
             }
 
-            // ========== UPLOAD HANDLER ==========
+            // ========== UPLOAD PROGRESS ==========
             window.onUploadProgress = function(progress) {
                 uploadPercent.textContent = `${progress.percent}%`;
                 uploadProgressFill.style.width = `${progress.percent}%`;
-                uploadStatus.textContent = `⏳ Upload ${progress.chunksSaved}/${progress.totalChunks} chunk`;
+                uploadStatus.textContent = `⏳ Upload ${progress.chunksSaved}/${progress.totalChunks} chunk (1MB/chunk)`;
             };
 
             async function handleUpload(files) {
                 if (!files.length) return;
-                // Cek ukuran untuk HP
                 if (files[0].size > 100 * 1024 * 1024) {
                     alert('⚠️ File >100MB mungkin lambat/crash di HP. Gunakan file lebih kecil atau di desktop.');
                 }
@@ -596,7 +581,6 @@
                         window.location.hash = '';
                         return;
                     }
-                    // Download
                     const blob = fileData.blob;
                     const url = URL.createObjectURL(blob);
                     const a = document.createElement('a');
@@ -674,7 +658,7 @@
                 refreshInterval = setInterval(async () => {
                     await deleteExpiredFiles();
                     await renderFileList();
-                }, 5000);
+                }, 1000); // update tiap detik
             };
             window.onbeforeunload = function() {
                 if (refreshInterval) clearInterval(refreshInterval);
