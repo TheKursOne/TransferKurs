@@ -3,98 +3,307 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>P2P Network Sharing · PeerJS</title>
-    <!-- PeerJS Library -->
-    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+    <title>📁 Share File + Expired Otomatis</title>
     <style>
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; }
-        body { background: #f5f7fa; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 24px; }
-        .app { max-width: 1000px; width: 100%; background: white; border-radius: 24px; box-shadow: 0 12px 40px rgba(0,0,0,0.04); padding: 32px; }
-        .header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 28px; flex-wrap: wrap; gap: 16px; }
-        .title { font-size: 28px; font-weight: 700; color: #0a1e2f; }
-        .badge { background: #e6f0fa; color: #0066cc; padding: 8px 18px; border-radius: 40px; font-size: 14px; font-weight: 600; }
-        .room-header { background: #f1f5f9; border-radius: 20px; padding: 24px; margin-bottom: 24px; }
-        .room-key-section { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; }
-        .key-badge { background: #0a1e2f; color: white; padding: 10px 24px; border-radius: 40px; font-weight: 600; font-size: 18px; display: inline-flex; align-items: center; gap: 8px; }
-        .btn { background: white; border: 1px solid #d1d9e6; padding: 10px 20px; border-radius: 40px; font-weight: 600; font-size: 14px; color: #1e293b; cursor: pointer; display: inline-flex; align-items: center; gap: 8px; transition: 0.15s; }
-        .btn-primary { background: #0a1e2f; border: none; color: white; }
-        .btn-primary:hover { background: #143750; }
-        .btn-small { padding: 8px 16px; font-size: 13px; }
-        .btn-outline { background: white; border: 1px solid #0a1e2f; color: #0a1e2f; }
-        .room-input-area { display: flex; align-items: center; gap: 12px; margin-top: 16px; flex-wrap: wrap; }
-        .room-input-area input { flex: 1; min-width: 200px; padding: 12px 20px; border: 1px solid #cbd5e1; border-radius: 40px; font-size: 15px; }
-        .upload-area { background: #eef2ff; border-radius: 20px; padding: 24px; margin-bottom: 24px; display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
-        .file-list { background: white; border: 1px solid #e2e8f0; border-radius: 20px; padding: 20px; min-height: 200px; max-height: 400px; overflow-y: auto; }
-        .file-item { display: flex; justify-content: space-between; align-items: center; padding: 16px 20px; background: #fafcfc; border-radius: 16px; margin-bottom: 10px; border-left: 4px solid #3b82f6; }
-        .file-item:hover { background: #f1f9ff; }
-        .file-detail { display: flex; flex-direction: column; gap: 4px; }
-        .file-name { font-weight: 600; color: #0f172a; }
-        .file-meta { font-size: 13px; color: #5e6f7e; }
-        .btn-download, .btn-delete { background: none; border: 1px solid #e2e8f0; padding: 8px 16px; border-radius: 30px; font-size: 13px; font-weight: 500; cursor: pointer; transition: 0.1s; }
-        .btn-download { color: #0a1e2f; }
-        .btn-download:hover { background: #e6f0fa; border-color: #3b82f6; }
-        .btn-delete { color: #b22234; }
-        .btn-delete:hover { background: #fee2e2; border-color: #b91c1c; }
-        .host-badge { background: #ffc107; color: #000; padding: 4px 10px; border-radius: 20px; font-size: 11px; font-weight: 700; margin-left: 8px; }
-        .footer { margin-top: 32px; text-align: center; color: #6a7a8a; font-size: 13px; border-top: 1px solid #edf2f7; padding-top: 24px; }
-        .hidden { display: none; }
-        .loading { display: inline-block; width: 20px; height: 20px; border: 3px solid rgba(0,0,0,0.1); border-radius: 50%; border-top-color: #0a1e2f; animation: spin 0.8s linear infinite; }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        .status-badge { background: #e2e8f0; padding: 4px 12px; border-radius: 20px; font-size: 12px; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(145deg, #f6f9fc 0%, #edf1f7 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1100px;
+            width: 100%;
+            background: rgba(255,255,255,0.75);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border-radius: 40px;
+            box-shadow: 0 20px 40px -10px rgba(0,20,40,0.15);
+            padding: 32px;
+            border: 1px solid rgba(255,255,255,0.5);
+        }
+
+        h1 {
+            font-size: 32px;
+            font-weight: 700;
+            color: #0b2b4a;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 8px;
+        }
+
+        .sub {
+            color: #3e5e7e;
+            margin-bottom: 32px;
+            font-size: 16px;
+            border-left: 5px solid #2e7eb0;
+            padding-left: 18px;
+            background: rgba(46,126,176,0.04);
+            border-radius: 0 16px 16px 0;
+            line-height: 1.5;
+        }
+
+        .upload-card {
+            background: white;
+            border-radius: 28px;
+            padding: 28px;
+            box-shadow: 0 6px 14px rgba(0,0,0,0.02);
+            border: 1px solid rgba(0,0,0,0.04);
+            margin-bottom: 32px;
+        }
+
+        .area-upload {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .btn {
+            background: white;
+            border: 1.5px solid #d4e0e9;
+            padding: 14px 28px;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 16px;
+            color: #1e3a5f;
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .btn-primary {
+            background: #0b2b4a;
+            border: none;
+            color: white;
+            box-shadow: 0 8px 18px rgba(11,43,74,0.2);
+        }
+
+        .btn-primary:hover {
+            background: #164566;
+            transform: translateY(-2px);
+        }
+
+        .btn:hover {
+            background: #f4faff;
+            border-color: #7aa3c2;
+        }
+
+        .expiry-selector {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-left: auto;
+        }
+
+        .expiry-selector label {
+            font-weight: 600;
+            color: #1e3a5f;
+            font-size: 15px;
+        }
+
+        select {
+            padding: 12px 20px;
+            border-radius: 40px;
+            border: 1.5px solid #d4e0e9;
+            background: white;
+            font-size: 15px;
+            color: #0b2b4a;
+            font-weight: 500;
+            outline: none;
+            transition: 0.2s;
+        }
+
+        select:focus {
+            border-color: #0b2b4a;
+        }
+
+        .file-list {
+            background: white;
+            border-radius: 24px;
+            padding: 20px;
+            border: 1px solid rgba(0,0,0,0.04);
+        }
+
+        .file-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 16px;
+        }
+
+        .file-header h3 {
+            font-size: 20px;
+            font-weight: 600;
+            color: #0b2b4a;
+        }
+
+        .file-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 18px 20px;
+            background: #fafdff;
+            border-radius: 20px;
+            margin-bottom: 12px;
+            border-left: 6px solid #2e7eb0;
+            transition: 0.15s;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .file-info {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            flex: 2;
+            min-width: 200px;
+        }
+
+        .file-name {
+            font-weight: 700;
+            color: #0a1c2e;
+            font-size: 17px;
+            word-break: break-word;
+        }
+
+        .file-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 18px;
+            font-size: 13px;
+            color: #4a667b;
+        }
+
+        .file-meta span {
+            background: #e6edf4;
+            padding: 4px 12px;
+            border-radius: 30px;
+        }
+
+        .countdown {
+            font-weight: 700;
+            color: #b4511b;
+            background: #ffeed9;
+            padding: 6px 16px;
+            border-radius: 40px;
+            font-size: 14px;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .expired {
+            color: #a03a2b;
+            background: #ffeae5;
+        }
+
+        .btn-sm {
+            padding: 10px 20px;
+            font-size: 14px;
+            border-radius: 40px;
+            border: 1px solid #cbd6e0;
+            background: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.1s;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-sm:hover {
+            background: #e4edf5;
+        }
+
+        .btn-delete {
+            color: #b33a3a;
+            border-color: #f3cdcd;
+        }
+
+        .btn-delete:hover {
+            background: #ffd9d9;
+        }
+
+        .empty-message {
+            text-align: center;
+            padding: 50px 20px;
+            color: #657e94;
+            font-size: 16px;
+        }
+
+        .footer {
+            margin-top: 40px;
+            text-align: center;
+            color: #4e6a7c;
+            font-size: 14px;
+            border-top: 1px solid rgba(0,0,0,0.05);
+            padding-top: 24px;
+        }
     </style>
 </head>
 <body>
-    <div class="app">
-        <div class="header">
-            <span class="title">🖧 P2P Network Sharing</span>
-            <span class="badge">WEBRTC · PEERJS · HOST DELETE</span>
+    <div class="container">
+        <h1>⏳ Share & Expire</h1>
+        <div class="sub">
+            🔒 File hanya disimpan di browser ini. Link hanya berlaku di perangkat yang sama.<br>
+            ⏰ File akan otomatis dihapus setelah waktu expired.
         </div>
 
-        <!-- ROOM CONTROLLER -->
-        <div class="room-header">
-            <div class="room-key-section">
-                <div style="display: flex; align-items: center; gap: 16px;">
-                    <span style="font-weight: 600;">🔑 Room Key:</span>
-                    <span class="key-badge" id="currentRoomKeyBadge">-</span>
-                    <button class="btn-small btn-outline" id="copyKeyBtn">📋 Salin</button>
+        <!-- UPLOAD CARD -->
+        <div class="upload-card">
+            <div class="area-upload">
+                <label for="fileInput" class="btn btn-primary">
+                    📁 Pilih File
+                </label>
+                <input type="file" id="fileInput" multiple hidden>
+
+                <div class="expiry-selector">
+                    <label>⏱️ Expired setelah:</label>
+                    <select id="expirySelect">
+                        <option value="5">5 menit</option>
+                        <option value="30">30 menit</option>
+                        <option value="60">1 jam</option>
+                        <option value="360">6 jam</option>
+                        <option value="1440">1 hari</option>
+                        <option value="10080">7 hari</option>
+                        <option value="0">Custom (detik)</option>
+                    </select>
+                    <input type="number" id="customExpiry" placeholder="detik" min="1" style="width:100px; padding:12px; border-radius:40px; border:1.5px solid #d4e0e9; display:none;">
                 </div>
-                <div style="display: flex; gap: 8px;">
-                    <button class="btn-small" id="generateKeyBtn">🎲 Generate Baru</button>
-                    <button class="btn-small btn-primary" id="joinRoomBtn">🔄 Join Room</button>
+            </div>
+            <div style="margin-top: 20px; color: #2e7eb0; font-weight: 500;" id="uploadStatus"></div>
+        </div>
+
+        <!-- DAFTAR FILE -->
+        <div class="file-list">
+            <div class="file-header">
+                <h3>📋 File tersimpan</h3>
+                <span id="totalSize" style="background: #e9f2f9; padding: 6px 16px; border-radius: 30px; font-size: 14px;">0 B</span>
+            </div>
+            <div id="fileListContainer">
+                <div class="empty-message">
+                    ⚡ Belum ada file. Upload sekarang!
                 </div>
             </div>
-            <div class="room-input-area">
-                <input type="text" id="roomKeyInput" placeholder="Masukkan key room...">
-                <span style="color: #5e6f7e;">lalu klik Join</span>
-            </div>
-            <div style="margin-top: 16px; font-size: 14px; display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
-                <span id="roomStatus">⏳ Menyiapkan Peer...</span>
-                <span id="roleBadge" class="status-badge">-</span>
-                <span id="peerIdDisplay" class="status-badge" style="background:#dbeafe;">Peer ID: -</span>
-            </div>
-        </div>
-
-        <!-- UPLOAD KE ROOM (hanya muncul jika sudah join dan sebagai host/guest? Guest juga bisa upload) -->
-        <div class="upload-area" id="uploadArea">
-            <span style="font-weight: 600; font-size: 16px;">⬆️ Upload ke room:</span>
-            <label for="roomFileInput" class="btn btn-primary" id="uploadBtnLabel">
-                📁 Pilih File
-            </label>
-            <input type="file" id="roomFileInput" multiple class="hidden">
-            <span style="color: #4b5563;" id="uploadStatus"></span>
-        </div>
-
-        <!-- DAFTAR FILE DI ROOM -->
-        <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 12px;">
-            <h3 style="font-size: 18px; font-weight: 600;">📄 File di room</h3>
-            <span id="fileCount" style="color: #3b82f6; font-size: 14px;"></span>
-        </div>
-        <div class="file-list" id="fileListContainer">
-            <div style="color: #64748b; text-align: center; padding: 40px;">⏳ Menunggu koneksi peer...</div>
         </div>
 
         <div class="footer">
-            ⚡ OXYX · PROTOKOL X · PEER‑TO‑PEER · HOST TERSIMPAN DI BROWSER
+            ⚡ OXYX · PROTOKOL X · EXPIRED OTOMATIS · 100% CLIENT‑SIDE
         </div>
     </div>
 
@@ -102,23 +311,8 @@
         (function() {
             "use strict";
 
-            // ========== KONFIGURASI PEERJS ==========
-            const PEER_SERVER_HOST = '0.peerjs.com';   // PeerJS cloud server
-            const PEER_SERVER_PORT = 443;
-            const PEER_SERVER_PATH = '/';
-            const PEER_DEBUG = 1;                     // 0: none, 1: errors, 2: all
-
-            // ========== GLOBAL STATE ==========
-            let currentRoomKey = null;                 // key room aktif
-            let isHost = false;                       // apakah device ini host?
-            let peer = null;                          // instance Peer
-            let connections = [];                     // daftar koneksi ke host (untuk host)
-            let hostConnection = null;                // koneksi ke host (untuk guest)
-            let fileMetadata = [];                    // daftar metadata file di room (disimpan host)
-            let fileChunks = {};                      // temporary untuk menerima chunk upload
-
-            // ========== INDEXEDDB STORAGE (HOST) ==========
-            const DB_NAME = 'P2PFileSharing';
+            // ========== INDEXEDDB ==========
+            const DB_NAME = 'ExpireFileShare';
             const DB_VERSION = 1;
             const STORE_NAME = 'files';
 
@@ -136,546 +330,260 @@
                     request.onupgradeneeded = (e) => {
                         const db = e.target.result;
                         if (!db.objectStoreNames.contains(STORE_NAME)) {
-                            db.createObjectStore(STORE_NAME, { keyPath: 'id' });
+                            const store = db.createObjectStore(STORE_NAME, { keyPath: 'id' });
+                            store.createIndex('expiresAt', 'expiresAt', { unique: false });
                         }
                     };
                 });
             }
 
-            async function saveFileToDB(fileId, fileBlob) {
+            async function saveFile(file, expiresInSeconds) {
                 await openDB();
                 return new Promise((resolve, reject) => {
+                    const id = Date.now() + '-' + Math.random().toString(36).substring(2) + '-' + file.name;
+                    const expiresAt = Date.now() + (expiresInSeconds * 1000);
                     const transaction = db.transaction([STORE_NAME], 'readwrite');
                     const store = transaction.objectStore(STORE_NAME);
-                    const request = store.put({ id: fileId, blob: fileBlob });
-                    request.onsuccess = () => resolve();
+                    const fileData = {
+                        id: id,
+                        name: file.name,
+                        size: file.size,
+                        type: file.type,
+                        lastModified: file.lastModified,
+                        blob: file,
+                        expiresAt: expiresAt,
+                        uploadedAt: Date.now()
+                    };
+                    const request = store.put(fileData);
+                    request.onsuccess = () => resolve(id);
                     request.onerror = () => reject(request.error);
                 });
             }
 
-            async function getFileFromDB(fileId) {
+            async function getFile(id) {
                 await openDB();
                 return new Promise((resolve, reject) => {
                     const transaction = db.transaction([STORE_NAME], 'readonly');
                     const store = transaction.objectStore(STORE_NAME);
-                    const request = store.get(fileId);
-                    request.onsuccess = () => resolve(request.result?.blob || null);
+                    const request = store.get(id);
+                    request.onsuccess = () => resolve(request.result || null);
                     request.onerror = () => reject(request.error);
                 });
             }
 
-            async function deleteFileFromDB(fileId) {
+            async function deleteFile(id) {
                 await openDB();
                 return new Promise((resolve, reject) => {
                     const transaction = db.transaction([STORE_NAME], 'readwrite');
                     const store = transaction.objectStore(STORE_NAME);
-                    const request = store.delete(fileId);
+                    const request = store.delete(id);
                     request.onsuccess = () => resolve();
                     request.onerror = () => reject(request.error);
                 });
             }
 
-            // ========== ELEMEN DOM ==========
-            const currentRoomKeyBadge = document.getElementById('currentRoomKeyBadge');
-            const copyKeyBtn = document.getElementById('copyKeyBtn');
-            const generateKeyBtn = document.getElementById('generateKeyBtn');
-            const joinRoomBtn = document.getElementById('joinRoomBtn');
-            const roomKeyInput = document.getElementById('roomKeyInput');
-            const roomStatus = document.getElementById('roomStatus');
-            const roleBadge = document.getElementById('roleBadge');
-            const peerIdDisplay = document.getElementById('peerIdDisplay');
-            const uploadArea = document.getElementById('uploadArea');
-            const uploadBtnLabel = document.getElementById('uploadBtnLabel');
-            const roomFileInput = document.getElementById('roomFileInput');
-            const uploadStatus = document.getElementById('uploadStatus');
-            const fileListContainer = document.getElementById('fileListContainer');
-            const fileCount = document.getElementById('fileCount');
-
-            // ========== FUNGSI BANTU ==========
-            function escapeHtml(text) {
-                const div = document.createElement('div');
-                div.textContent = text;
-                return div.innerHTML;
+            async function getAllFiles() {
+                await openDB();
+                return new Promise((resolve, reject) => {
+                    const transaction = db.transaction([STORE_NAME], 'readonly');
+                    const store = transaction.objectStore(STORE_NAME);
+                    const request = store.getAll();
+                    request.onsuccess = () => resolve(request.result || []);
+                    request.onerror = () => reject(request.error);
+                });
             }
 
+            // ========== GLOBAL ==========
+            let refreshInterval = null;
+            const fileListContainer = document.getElementById('fileListContainer');
+            const totalSizeSpan = document.getElementById('totalSize');
+            const fileInput = document.getElementById('fileInput');
+            const expirySelect = document.getElementById('expirySelect');
+            const customExpiry = document.getElementById('customExpiry');
+            const uploadStatus = document.getElementById('uploadStatus');
+
+            // ========== UTILS ==========
             function formatBytes(bytes) {
                 if (bytes === 0) return '0 B';
                 const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
                 const i = Math.floor(Math.log(bytes) / Math.log(1024));
-                return parseFloat((bytes / Math.pow(1024, i)).toFixed(1)) + ' ' + (sizes[i] || '');
+                return parseFloat((bytes / Math.pow(1024, i)).toFixed(1)) + ' ' + sizes[i];
             }
 
-            function generateRoomKey() {
-                return Math.random().toString(36).substring(2, 10); // 8 karakter
+            function escapeHtml(unsafe) {
+                return unsafe
+                    .replace(/&/g, "&amp;")
+                    .replace(/</g, "&lt;")
+                    .replace(/>/g, "&gt;")
+                    .replace(/"/g, "&quot;")
+                    .replace(/'/g, "&#039;");
             }
 
             // ========== RENDER FILE LIST ==========
-            function renderFileList() {
-                fileCount.textContent = `${fileMetadata.length} file`;
-                if (fileMetadata.length === 0) {
-                    fileListContainer.innerHTML = `<div style="color: #64748b; text-align: center; padding: 40px;">📭 Belum ada file di room ini. Upload sekarang!</div>`;
+            async function renderFileList() {
+                const files = await getAllFiles();
+                const now = Date.now();
+
+                // Filter expired
+                const validFiles = files.filter(f => f.expiresAt > now);
+                // Hapus yang expired dari DB
+                for (let f of files) {
+                    if (f.expiresAt <= now) {
+                        await deleteFile(f.id);
+                    }
+                }
+
+                const totalBytes = validFiles.reduce((acc, f) => acc + (f.size || 0), 0);
+                totalSizeSpan.textContent = formatBytes(totalBytes);
+
+                if (validFiles.length === 0) {
+                    fileListContainer.innerHTML = `<div class="empty-message">📭 Tidak ada file. Upload sekarang!</div>`;
                     return;
                 }
 
+                // Urutkan dari yang terbaru
+                validFiles.sort((a,b) => b.uploadedAt - a.uploadedAt);
+
                 let html = '';
-                fileMetadata.forEach((file, index) => {
+                validFiles.forEach(file => {
+                    const expiresInMs = file.expiresAt - now;
+                    const expiresInSec = Math.floor(expiresInMs / 1000);
+                    const minutes = Math.floor(expiresInSec / 60);
+                    const seconds = expiresInSec % 60;
+                    let timeText = '';
+                    if (expiresInSec <= 0) timeText = '⏹️ Expired';
+                    else if (minutes > 0) timeText = `⏳ ${minutes} menit ${seconds} detik`;
+                    else timeText = `⏳ ${seconds} detik`;
+
+                    const expiredClass = expiresInSec <= 0 ? 'expired' : '';
+
                     html += `
-                        <div class="file-item" data-fileid="${escapeHtml(file.id)}">
-                            <div class="file-detail">
-                                <span class="file-name">${escapeHtml(file.name)}</span>
-                                <span class="file-meta">${formatBytes(file.size)} · ${escapeHtml(file.type.substring(0, 30))}</span>
-                                <span style="font-size:12px; color:#5e6f7e;">diupload: ${new Date(file.uploadedAt).toLocaleString()}</span>
+                        <div class="file-item" data-file-id="${escapeHtml(file.id)}">
+                            <div class="file-info">
+                                <div class="file-name">📄 ${escapeHtml(file.name)}</div>
+                                <div class="file-meta">
+                                    <span>${formatBytes(file.size)}</span>
+                                    <span class="countdown ${expiredClass}">${timeText}</span>
+                                </div>
                             </div>
                             <div style="display: flex; gap: 8px;">
-                                <button class="btn-download" data-fileid="${escapeHtml(file.id)}" data-name="${escapeHtml(file.name)}">⬇️ Download</button>
-                                ${isHost ? `<button class="btn-delete" data-fileid="${escapeHtml(file.id)}">✕ Hapus</button>` : ''}
+                                <button class="btn-sm" onclick="window.copyLink('${escapeHtml(file.id)}')">🔗 Copy Link</button>
+                                <button class="btn-sm btn-delete" onclick="window.deleteFileById('${escapeHtml(file.id)}')">✕ Hapus</button>
                             </div>
                         </div>
                     `;
                 });
                 fileListContainer.innerHTML = html;
+            }
 
-                // Tombol download
-                fileListContainer.querySelectorAll('.btn-download').forEach(btn => {
-                    btn.addEventListener('click', async (e) => {
-                        const fileId = btn.dataset.fileid;
-                        const fileName = btn.dataset.name;
-                        if (isHost) {
-                            // Host: ambil dari IndexedDB
-                            const blob = await getFileFromDB(fileId);
-                            if (blob) {
-                                const url = URL.createObjectURL(blob);
-                                const a = document.createElement('a');
-                                a.href = url;
-                                a.download = fileName;
-                                a.click();
-                                URL.revokeObjectURL(url);
-                            }
-                        } else {
-                            // Guest: minta file ke host
-                            if (hostConnection) {
-                                hostConnection.send({
-                                    type: 'download-request',
-                                    fileId: fileId
-                                });
-                                uploadStatus.innerText = '⏳ Meminta file dari host...';
-                            }
-                        }
-                        e.stopPropagation();
-                    });
+            // ========== COPY LINK ==========
+            window.copyLink = function(fileId) {
+                const url = new URL(window.location.href);
+                url.hash = `#file-${fileId}`;
+                navigator.clipboard.writeText(url.toString()).then(() => {
+                    uploadStatus.innerText = '✅ Link disalin ke clipboard!';
+                    setTimeout(() => { uploadStatus.innerText = ''; }, 3000);
+                }).catch(() => {
+                    prompt('❌ Gagal menyalin otomatis. Salin manual:', url.toString());
                 });
+            };
 
-                // Tombol hapus (hanya host)
-                if (isHost) {
-                    fileListContainer.querySelectorAll('.btn-delete').forEach(btn => {
-                        btn.addEventListener('click', async (e) => {
-                            const fileId = btn.dataset.fileid;
-                            if (confirm('Hapus file ini? Semua guest akan kehilangan akses.')) {
-                                await deleteFileFromDB(fileId);
-                                fileMetadata = fileMetadata.filter(f => f.id !== fileId);
-                                saveMetadataToLocalStorage();
-                                renderFileList();
-                                // Broadcast ke semua guest bahwa file dihapus
-                                broadcastToGuests({
-                                    type: 'file-deleted',
-                                    fileId: fileId
-                                });
-                                uploadStatus.innerText = '✅ File dihapus';
-                                setTimeout(() => { uploadStatus.innerText = ''; }, 3000);
-                            }
-                            e.stopPropagation();
-                        });
-                    });
-                }
-            }
-
-            // ========== SIMPAN METADATA KE LOCALSTORAGE (HOST) ==========
-            function saveMetadataToLocalStorage() {
-                if (isHost && currentRoomKey) {
-                    localStorage.setItem(`room_${currentRoomKey}_metadata`, JSON.stringify(fileMetadata));
-                }
-            }
-
-            function loadMetadataFromLocalStorage() {
-                if (currentRoomKey) {
-                    const stored = localStorage.getItem(`room_${currentRoomKey}_metadata`);
-                    if (stored) {
-                        try {
-                            fileMetadata = JSON.parse(stored);
-                        } catch (e) {
-                            fileMetadata = [];
-                        }
-                    } else {
-                        fileMetadata = [];
-                    }
-                }
-            }
-
-            // ========== HOST: BROADCAST KE SEMUA GUEST ==========
-            function broadcastToGuests(message) {
-                connections.forEach(conn => {
-                    if (conn.open) {
-                        conn.send(message);
-                    }
-                });
-            }
-
-            // ========== INIT PEER SEBAGAI HOST ==========
-            async function initHost(roomKey) {
-                isHost = true;
-                roleBadge.innerHTML = '👑 HOST';
-                roleBadge.style.background = '#ffc107';
-                roleBadge.style.color = '#000';
-
-                // Load metadata dari localStorage
-                loadMetadataFromLocalStorage();
+            // ========== DELETE ==========
+            window.deleteFileById = async function(fileId) {
+                await deleteFile(fileId);
                 renderFileList();
+                uploadStatus.innerText = '🗑️ File dihapus';
+                setTimeout(() => { uploadStatus.innerText = ''; }, 2000);
+            };
 
-                // Buat Peer dengan ID = roomKey + '-host'
-                const peerId = `${roomKey}-host`;
-                peer = new Peer(peerId, {
-                    host: PEER_SERVER_HOST,
-                    port: PEER_SERVER_PORT,
-                    path: PEER_SERVER_PATH,
-                    debug: PEER_DEBUG
-                });
-
-                peer.on('open', (id) => {
-                    peerIdDisplay.textContent = `Peer ID: ${id}`;
-                    roomStatus.innerHTML = '✅ Host siap. Guest bisa join dengan key yang sama.';
-                });
-
-                peer.on('connection', (conn) => {
-                    connections.push(conn);
-                    console.log('Guest connected:', conn.peer);
-                    
-                    conn.on('open', () => {
-                        // Kirim daftar file ke guest yang baru join
-                        conn.send({
-                            type: 'file-list',
-                            files: fileMetadata
-                        });
-                    });
-
-                    conn.on('data', async (data) => {
-                        if (data.type === 'upload-chunk') {
-                            // Terima chunk file dari guest
-                            const { fileId, chunkIndex, totalChunks, chunk, fileName, fileSize, fileType } = data;
-                            if (!fileChunks[fileId]) {
-                                fileChunks[fileId] = {
-                                    chunks: [],
-                                    received: 0,
-                                    totalChunks: totalChunks,
-                                    name: fileName,
-                                    size: fileSize,
-                                    type: fileType
-                                };
-                            }
-                            // Konversi chunk dari base64 ke blob
-                            const binary = atob(chunk);
-                            const array = new Uint8Array(binary.length);
-                            for (let i = 0; i < binary.length; i++) {
-                                array[i] = binary.charCodeAt(i);
-                            }
-                            fileChunks[fileId].chunks[chunkIndex] = array;
-                            fileChunks[fileId].received++;
-
-                            if (fileChunks[fileId].received === totalChunks) {
-                                // Semua chunk terkumpul, gabungkan
-                                const allChunks = fileChunks[fileId].chunks;
-                                let totalLength = 0;
-                                allChunks.forEach(chunk => { totalLength += chunk.length; });
-                                const fullArray = new Uint8Array(totalLength);
-                                let offset = 0;
-                                allChunks.forEach(chunk => {
-                                    fullArray.set(chunk, offset);
-                                    offset += chunk.length;
-                                });
-                                const blob = new Blob([fullArray], { type: fileType });
-                                
-                                // Simpan ke IndexedDB
-                                await saveFileToDB(fileId, blob);
-                                
-                                // Tambah metadata
-                                const newFile = {
-                                    id: fileId,
-                                    name: fileName,
-                                    size: fileSize,
-                                    type: fileType,
-                                    uploadedAt: Date.now()
-                                };
-                                fileMetadata.push(newFile);
-                                saveMetadataToLocalStorage();
-                                renderFileList();
-                                
-                                // Broadcast ke semua guest bahwa ada file baru
-                                broadcastToGuests({
-                                    type: 'file-added',
-                                    file: newFile
-                                });
-                                
-                                // Bersihkan
-                                delete fileChunks[fileId];
-                            }
-                        }
-                    });
-
-                    conn.on('close', () => {
-                        connections = connections.filter(c => c.peer !== conn.peer);
-                    });
-                });
-
-                peer.on('error', (err) => {
-                    console.error('Peer error:', err);
-                    if (err.type === 'unavailable-id') {
-                        roomStatus.innerHTML = '❌ Key sudah digunakan host lain. Gunakan key lain atau join sebagai guest.';
-                    } else {
-                        roomStatus.innerHTML = `❌ Error: ${err.message}`;
-                    }
-                });
-            }
-
-            // ========== INIT PEER SEBAGAI GUEST ==========
-            async function initGuest(roomKey) {
-                isHost = false;
-                roleBadge.innerHTML = '👤 GUEST';
-                roleBadge.style.background = '#e2e8f0';
-                roleBadge.style.color = '#1e293b';
-                fileMetadata = [];
-                renderFileList();
-
-                // Buat Peer tanpa ID khusus
-                peer = new Peer({
-                    host: PEER_SERVER_HOST,
-                    port: PEER_SERVER_PORT,
-                    path: PEER_SERVER_PATH,
-                    debug: PEER_DEBUG
-                });
-
-                peer.on('open', (id) => {
-                    peerIdDisplay.textContent = `Peer ID: ${id}`;
-                    roomStatus.innerHTML = '✅ Terhubung ke PeerJS. Menghubungi host...';
-                    
-                    // Konek ke host
-                    const hostPeerId = `${roomKey}-host`;
-                    const conn = peer.connect(hostPeerId);
-                    hostConnection = conn;
-
-                    conn.on('open', () => {
-                        roomStatus.innerHTML = '✅ Terhubung ke host.';
-                    });
-
-                    conn.on('data', (data) => {
-                        if (data.type === 'file-list') {
-                            fileMetadata = data.files || [];
-                            renderFileList();
-                        } else if (data.type === 'file-added') {
-                            fileMetadata.push(data.file);
-                            renderFileList();
-                        } else if (data.type === 'file-deleted') {
-                            fileMetadata = fileMetadata.filter(f => f.id !== data.fileId);
-                            renderFileList();
-                        } else if (data.type === 'download-response') {
-                            // Terima file dari host
-                            const { fileId, chunkIndex, totalChunks, chunk, fileName, fileType } = data;
-                            if (!fileChunks[fileId]) {
-                                fileChunks[fileId] = {
-                                    chunks: [],
-                                    received: 0,
-                                    totalChunks: totalChunks,
-                                    name: fileName,
-                                    type: fileType
-                                };
-                            }
-                            const binary = atob(chunk);
-                            const array = new Uint8Array(binary.length);
-                            for (let i = 0; i < binary.length; i++) {
-                                array[i] = binary.charCodeAt(i);
-                            }
-                            fileChunks[fileId].chunks[chunkIndex] = array;
-                            fileChunks[fileId].received++;
-
-                            if (fileChunks[fileId].received === totalChunks) {
-                                // Gabungkan dan download
-                                const allChunks = fileChunks[fileId].chunks;
-                                let totalLength = 0;
-                                allChunks.forEach(chunk => { totalLength += chunk.length; });
-                                const fullArray = new Uint8Array(totalLength);
-                                let offset = 0;
-                                allChunks.forEach(chunk => {
-                                    fullArray.set(chunk, offset);
-                                    offset += chunk.length;
-                                });
-                                const blob = new Blob([fullArray], { type: fileType });
-                                const url = URL.createObjectURL(blob);
-                                const a = document.createElement('a');
-                                a.href = url;
-                                a.download = fileName;
-                                a.click();
-                                URL.revokeObjectURL(url);
-                                uploadStatus.innerText = `✅ Download selesai: ${fileName}`;
-                                setTimeout(() => { uploadStatus.innerText = ''; }, 3000);
-                                delete fileChunks[fileId];
-                            }
-                        }
-                    });
-
-                    conn.on('close', () => {
-                        roomStatus.innerHTML = '❌ Koneksi ke host terputus.';
-                    });
-
-                    conn.on('error', (err) => {
-                        console.error(err);
-                        roomStatus.innerHTML = `❌ Gagal konek ke host: ${err.message}`;
-                    });
-                });
-
-                peer.on('error', (err) => {
-                    console.error(err);
-                    roomStatus.innerHTML = `❌ Peer error: ${err.message}`;
-                });
-            }
-
-            // ========== UPLOAD FILE (GUEST ATAU HOST) ==========
-            async function uploadFiles(files) {
-                if (!currentRoomKey) {
-                    alert('Join room terlebih dahulu.');
-                    return;
-                }
+            // ========== UPLOAD HANDLER ==========
+            async function handleUpload(files) {
                 if (!files || files.length === 0) return;
 
-                if (isHost) {
-                    // Host upload langsung simpan ke IndexedDB
-                    for (let i = 0; i < files.length; i++) {
-                        const file = files[i];
-                        const fileId = `${Date.now()}-${Math.random().toString(36).substring(2)}-${file.name}`;
-                        await saveFileToDB(fileId, file);
-                        fileMetadata.push({
-                            id: fileId,
-                            name: file.name,
-                            size: file.size,
-                            type: file.type,
-                            uploadedAt: Date.now()
-                        });
-                        saveMetadataToLocalStorage();
-                        renderFileList();
-                        // Broadcast ke guest
-                        broadcastToGuests({
-                            type: 'file-added',
-                            file: {
-                                id: fileId,
-                                name: file.name,
-                                size: file.size,
-                                type: file.type,
-                                uploadedAt: Date.now()
-                            }
-                        });
-                        uploadStatus.innerText = `✅ Upload ${file.name} berhasil`;
-                    }
-                    setTimeout(() => { uploadStatus.innerText = ''; }, 3000);
-                } else {
-                    // Guest upload: kirim file ke host via chunk
-                    for (let i = 0; i < files.length; i++) {
-                        const file = files[i];
-                        const fileId = `${Date.now()}-${Math.random().toString(36).substring(2)}-${file.name}`;
-                        const chunkSize = 16 * 1024; // 16KB
-                        const totalChunks = Math.ceil(file.size / chunkSize);
-                        let chunkIndex = 0;
-
-                        uploadStatus.innerText = `⏳ Mengupload ${file.name} (0/${totalChunks})...`;
-
-                        for (let start = 0; start < file.size; start += chunkSize) {
-                            const chunk = file.slice(start, start + chunkSize);
-                            const arrayBuffer = await chunk.arrayBuffer();
-                            const uint8Array = new Uint8Array(arrayBuffer);
-                            let binary = '';
-                            for (let i = 0; i < uint8Array.length; i++) {
-                                binary += String.fromCharCode(uint8Array[i]);
-                            }
-                            const base64 = btoa(binary);
-
-                            hostConnection.send({
-                                type: 'upload-chunk',
-                                fileId: fileId,
-                                chunkIndex: chunkIndex,
-                                totalChunks: totalChunks,
-                                chunk: base64,
-                                fileName: file.name,
-                                fileSize: file.size,
-                                fileType: file.type
-                            });
-
-                            chunkIndex++;
-                            uploadStatus.innerText = `⏳ Mengupload ${file.name} (${chunkIndex}/${totalChunks})...`;
-                        }
-                        uploadStatus.innerText = `✅ Upload ${file.name} selesai, menunggu host memproses...`;
+                // Tentukan expired time
+                let expirySeconds = parseInt(expirySelect.value);
+                if (expirySelect.value === '0') {
+                    expirySeconds = parseInt(customExpiry.value);
+                    if (isNaN(expirySeconds) || expirySeconds <= 0) {
+                        alert('Masukkan durasi expired dalam detik (minimal 1)');
+                        return;
                     }
                 }
+
+                for (let i = 0; i < files.length; i++) {
+                    await saveFile(files[i], expirySeconds);
+                }
+                await renderFileList();
+                uploadStatus.innerText = `✅ ${files.length} file diupload, expired dalam ${expirySeconds} detik.`;
+                setTimeout(() => { uploadStatus.innerText = ''; }, 4000);
+                fileInput.value = '';
             }
 
             // ========== EVENT LISTENER ==========
-            generateKeyBtn.addEventListener('click', () => {
-                const newKey = generateRoomKey();
-                roomKeyInput.value = newKey;
-                joinRoomBtn.click();
-            });
+            fileInput.addEventListener('change', (e) => handleUpload(e.target.files));
 
-            joinRoomBtn.addEventListener('click', async () => {
-                let key = roomKeyInput.value.trim();
-                if (!key) {
-                    alert('Masukkan key room.');
-                    return;
-                }
-
-                // Bersihkan peer lama
-                if (peer) {
-                    peer.destroy();
-                    peer = null;
-                }
-                connections = [];
-                hostConnection = null;
-                fileChunks = {};
-
-                currentRoomKey = key;
-                currentRoomKeyBadge.textContent = key;
-
-                roomStatus.innerHTML = '<span class="loading"></span> Mencoba sebagai host...';
-
-                // Coba sebagai host dulu
-                try {
-                    await initHost(key);
-                } catch (e) {
-                    // Jika gagal karena ID sudah dipakai, otomatis jadi guest
-                    if (e.type === 'unavailable-id') {
-                        roomStatus.innerHTML = '⚠️ Host sudah ada, join sebagai guest...';
-                        await initGuest(key);
-                    } else {
-                        roomStatus.innerHTML = `❌ Error: ${e.message}`;
-                    }
+            // Drag & drop sederhana
+            document.body.addEventListener('dragover', (e) => e.preventDefault());
+            document.body.addEventListener('drop', async (e) => {
+                e.preventDefault();
+                if (e.dataTransfer.files.length > 0) {
+                    await handleUpload(e.dataTransfer.files);
                 }
             });
 
-            copyKeyBtn.addEventListener('click', () => {
-                if (currentRoomKey) {
-                    navigator.clipboard.writeText(currentRoomKey);
-                    alert(`Key "${currentRoomKey}" disalin!`);
+            // Toggle custom expiry
+            expirySelect.addEventListener('change', function() {
+                if (this.value === '0') {
+                    customExpiry.style.display = 'inline-block';
                 } else {
-                    alert('Belum ada room aktif.');
+                    customExpiry.style.display = 'none';
                 }
             });
 
-            roomFileInput.addEventListener('change', (e) => {
-                uploadFiles(e.target.files);
-                roomFileInput.value = ''; // Reset input
-            });
+            // ========== HANDLE LINK DOWNLOAD (hash) ==========
+            async function handleHash() {
+                const hash = window.location.hash;
+                if (hash && hash.startsWith('#file-')) {
+                    const fileId = hash.substring(6); // hapus '#file-'
+                    const fileData = await getFile(fileId);
+                    if (!fileData) {
+                        alert('❌ File tidak ditemukan atau sudah expired.');
+                        window.location.hash = '';
+                        return;
+                    }
+                    if (fileData.expiresAt <= Date.now()) {
+                        alert('⏹️ File sudah expired.');
+                        await deleteFile(fileId);
+                        window.location.hash = '';
+                        return;
+                    }
+                    // Download file
+                    const blob = fileData.blob;
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = fileData.name;
+                    a.click();
+                    URL.revokeObjectURL(url);
+                    // Bersihkan hash
+                    window.location.hash = '';
+                }
+            }
 
-            // ========== INISIALISASI AWAL ==========
-            (async () => {
-                // Generate key awal
-                const initialKey = generateRoomKey();
-                roomKeyInput.value = initialKey;
-                await joinRoomBtn.click();
-            })();
+            // ========== INIT ==========
+            window.onload = async function() {
+                await openDB();
+                await renderFileList();
+                await handleHash();
+                // Refresh countdown setiap 1 detik
+                refreshInterval = setInterval(renderFileList, 1000);
+            };
+
+            window.onbeforeunload = function() {
+                if (refreshInterval) clearInterval(refreshInterval);
+            };
+
+            window.addEventListener('hashchange', handleHash);
         })();
     </script>
 </body>
