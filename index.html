@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TransferPile · Room + Unlimited</title>
     <style>
+        /* ===== STYLE MINIMALIS ===== */
         * {
             margin: 0;
             padding: 0;
@@ -139,6 +140,16 @@
             font-size: 14px;
         }
 
+        .btn-outline {
+            background: white;
+            border: 1px solid #0a1e2f;
+            color: #0a1e2f;
+        }
+
+        .btn-outline:hover {
+            background: #f0f4fa;
+        }
+
         .btn:hover {
             background: #f1f5f9;
         }
@@ -224,38 +235,58 @@
             border-color: #3b82f6;
         }
 
-        .room-control {
+        /* ===== ROOM CONTROL YANG JELAS ===== */
+        .room-header {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
             background: #f1f5f9;
             border-radius: 20px;
             padding: 20px;
             margin-bottom: 20px;
+        }
+
+        .room-key-display {
             display: flex;
-            flex-wrap: wrap;
             align-items: center;
             gap: 16px;
-        }
-
-        .room-input {
-            flex: 1;
-            min-width: 200px;
-            display: flex;
-            gap: 12px;
-            align-items: center;
             flex-wrap: wrap;
         }
 
-        .room-input label {
+        .key-badge {
+            background: #0a1e2f;
+            color: white;
+            padding: 8px 20px;
+            border-radius: 40px;
             font-weight: 600;
-            color: #1e293b;
+            font-size: 16px;
+            letter-spacing: 0.5px;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
         }
 
-        .room-input input {
-            padding: 10px 16px;
-            border: 1px solid #cbd5e1;
-            border-radius: 30px;
-            font-size: 15px;
+        .room-actions {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .room-input-area {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-top: 12px;
+            width: 100%;
+        }
+
+        .room-input-area input {
             flex: 1;
-            min-width: 160px;
+            padding: 12px 18px;
+            border: 1px solid #cbd5e1;
+            border-radius: 40px;
+            font-size: 15px;
         }
 
         .device-section {
@@ -343,7 +374,7 @@
             <div class="tab" id="tabRoomInbox">📥 Room Inbox</div>
         </div>
 
-        <!-- ========== PANEL 1: MY UPLOADS (Upload & Transfer) ========= -->
+        <!-- ========== PANEL 1: MY UPLOADS ========= -->
         <div id="panelMyUploads" class="panel active">
             <!-- UPLOAD AREA -->
             <div class="upload-section" id="dropZone">
@@ -360,16 +391,16 @@
                 </div>
             </div>
 
-            <!-- DAFTAR FILE SAYA (UPLOADED) -->
+            <!-- DAFTAR FILE SAYA -->
             <div class="file-list" id="fileListContainer">
                 <div style="color: #64748b; text-align: center; padding: 30px;" id="emptyMessage">
                     ⚡ Belum ada file. Upload tak terbatas dimulai.
                 </div>
             </div>
 
-            <!-- PILIH PERANGKAT TUJUAN -->
+            <!-- PILIH PERANGKAT -->
             <div class="device-section">
-                <div class="device-title">🎯 Kirim ke perangkat (pilih satu / banyak)</div>
+                <div class="device-title">🎯 Kirim ke perangkat</div>
                 <div class="device-grid" id="deviceSelector">
                     <div class="device-chip active" data-device="pc1">🖥️ PC1</div>
                     <div class="device-chip" data-device="router">📶 Router</div>
@@ -388,23 +419,32 @@
             </div>
         </div>
 
-        <!-- ========== PANEL 2: ROOM INBOX (Lihat & Download file orang) ========= -->
+        <!-- ========== PANEL 2: ROOM INBOX ========= -->
         <div id="panelRoomInbox" class="panel">
-            <div class="room-control">
-                <div class="room-input">
-                    <label>🔑 Room Key:</label>
-                    <input type="text" id="roomKeyInput" placeholder="Contoh: rahasia123" value="default-room">
-                    <button class="btn btn-small" id="joinRoomBtn">🔄 Join / Refresh</button>
+            <!-- AREA KEY ROOM YANG JELAS -->
+            <div class="room-header">
+                <div class="room-key-display">
+                    <span style="font-weight: 600; color: #1e293b;">🔑 Key Room-mu:</span>
+                    <span class="key-badge" id="currentRoomKeyBadge">default-room</span>
+                    <button class="btn-small btn-outline" id="copyKeyBtn" title="Salin key">📋 Salin</button>
                 </div>
-                <span style="color: #4a5c6a; font-size: 14px;">File di room ini dikirim oleh orang lain</span>
+                <div class="room-actions">
+                    <button class="btn-small" id="generateKeyBtn">🎲 Generate Key Baru</button>
+                    <button class="btn-small btn-primary" id="joinRoomBtn">🔄 Join / Refresh</button>
+                </div>
+            </div>
+            <!-- Input manual key (opsional) -->
+            <div class="room-input-area">
+                <input type="text" id="roomKeyInput" placeholder="Atau masukkan key lain..." value="default-room">
+                <span style="color: #5e6f7e; font-size: 14px;">lalu klik Join</span>
             </div>
 
-            <!-- DAFTAR FILE ROOM (INCOMING) -->
-            <div class="file-list" id="roomFileListContainer" style="margin-top: 0;">
-                <!-- Akan diisi oleh JS -->
+            <!-- DAFTAR FILE DI ROOM -->
+            <div class="file-list" id="roomFileListContainer" style="margin-top: 20px;">
+                <!-- isi dari JS -->
             </div>
             <div style="margin-top: 12px; color: #5e6f7e; text-align: right; font-size: 13px;">
-                <span id="roomInfo">Menggunakan key: default-room</span>
+                <span id="roomInfo"></span>
             </div>
         </div>
 
@@ -419,10 +459,9 @@
             "use strict";
 
             // ========== STATE ==========
-            // File yang diupload user sendiri (my uploads)
-            let uploadedFiles = []; 
+            let uploadedFiles = []; // file saya, tanpa dummy
 
-            // Simulasi file yang ada di berbagai room (key -> array of File)
+            // Database room (simulasi)
             let roomDatabase = {
                 "default-room": [
                     createSampleFile("laporan_keuangan_q1.pdf", "application/pdf", 2.4 * 1024 * 1024),
@@ -458,14 +497,17 @@
             const transferStatus = document.getElementById('transferStatus');
             const deviceChips = document.querySelectorAll('.device-chip');
 
-            // Room Inbox
+            // Room
             const roomKeyInput = document.getElementById('roomKeyInput');
             const joinRoomBtn = document.getElementById('joinRoomBtn');
             const roomFileListContainer = document.getElementById('roomFileListContainer');
             const roomInfo = document.getElementById('roomInfo');
+            const currentRoomKeyBadge = document.getElementById('currentRoomKeyBadge');
+            const copyKeyBtn = document.getElementById('copyKeyBtn');
+            const generateKeyBtn = document.getElementById('generateKeyBtn');
 
             // State perangkat
-            let selectedDevices = ['pc1']; // default
+            let selectedDevices = ['pc1'];
 
             // ========== FUNGSI BANTU ==========
             function formatBytes(bytes) {
@@ -476,21 +518,37 @@
                 return parseFloat((bytes / Math.pow(1024, i)).toFixed(1)) + ' ' + (sizes[i] || '∞');
             }
 
-            // Membuat objek File tiruan (untuk simulasi room)
             function createSampleFile(name, type, size) {
                 const file = new File([""], name, { type });
                 Object.defineProperty(file, 'size', { value: size });
                 return file;
             }
 
-            // Escape HTML
             function escapeHtml(text) {
                 const div = document.createElement('div');
                 div.textContent = text;
                 return div.innerHTML;
             }
 
-            // ========== RENDER MY UPLOADS ==========
+            // ===== GENERATE RANDOM KEY =====
+            function generateRandomKey() {
+                const chars = 'abcdefghijklmnopqrstuvwxyz0123456789';
+                let key = '';
+                for (let i = 0; i < 8; i++) {
+                    key += chars[Math.floor(Math.random() * chars.length)];
+                }
+                return key;
+            }
+
+            // ===== UPDATE UI ROOM =====
+            function updateRoomUI(roomKey) {
+                currentRoomKeyBadge.textContent = roomKey;
+                roomKeyInput.value = roomKey;
+                // Render file di room
+                renderRoomFiles(roomKey);
+            }
+
+            // ===== RENDER MY UPLOADS =====
             function renderMyFiles() {
                 const totalSize = uploadedFiles.reduce((acc, f) => acc + (f.size || 0), 0);
                 const fileCount = uploadedFiles.length;
@@ -535,10 +593,10 @@
                 });
             }
 
-            // ========== RENDER ROOM INBOX ==========
+            // ===== RENDER ROOM FILES =====
             function renderRoomFiles(roomKey) {
                 const files = roomDatabase[roomKey] || [];
-                roomInfo.innerText = `Menggunakan key: ${roomKey} (${files.length} file)`;
+                roomInfo.innerText = `Menggunakan key: ${roomKey} · ${files.length} file di room ini`;
 
                 if (files.length === 0) {
                     roomFileListContainer.innerHTML = `<div style="color: #64748b; text-align: center; padding: 40px;">📭 Tidak ada file di room ini.</div>`;
@@ -570,7 +628,6 @@
                         const fIdx = parseInt(this.dataset.fileindex);
                         const file = roomDatabase[rKey]?.[fIdx];
                         if (file) {
-                            // Buat URL objek dan trigger download
                             const blob = new Blob([file], { type: file.type });
                             const url = URL.createObjectURL(blob);
                             const a = document.createElement('a');
@@ -584,7 +641,7 @@
                 });
             }
 
-            // ========== UPLOAD HANDLER ==========
+            // ===== UPLOAD HANDLER =====
             function addFiles(files) {
                 if (!files || files.length === 0) return;
                 for (let i = 0; i < files.length; i++) {
@@ -607,7 +664,6 @@
                 tabMy.classList.remove('active');
                 panelRoom.classList.add('active');
                 panelMy.classList.remove('active');
-                // render ulang room dengan key yg sedang aktif
                 renderRoomFiles(currentRoomKey);
             });
 
@@ -697,23 +753,42 @@
                 }, 3000);
             });
 
-            // ROOM: Join / Refresh
+            // ===== ROOM: GENERATE KEY BARU =====
+            generateKeyBtn.addEventListener('click', function() {
+                const newKey = generateRandomKey();
+                // Pastikan room database punya entry untuk key baru
+                if (!roomDatabase[newKey]) {
+                    roomDatabase[newKey] = [];
+                }
+                currentRoomKey = newKey;
+                updateRoomUI(currentRoomKey);
+            });
+
+            // ===== ROOM: JOIN / REFRESH =====
             joinRoomBtn.addEventListener('click', function() {
                 let key = roomKeyInput.value.trim();
                 if (key === '') key = 'default-room';
-                currentRoomKey = key;
-                // Jika room belum ada di database, buat array kosong
-                if (!roomDatabase[currentRoomKey]) {
-                    roomDatabase[currentRoomKey] = [];
+                if (!roomDatabase[key]) {
+                    roomDatabase[key] = [];
                 }
-                renderRoomFiles(currentRoomKey);
+                currentRoomKey = key;
+                updateRoomUI(currentRoomKey);
             });
 
-            // Inisialisasi room dengan key default
-            roomKeyInput.value = currentRoomKey;
-            renderRoomFiles(currentRoomKey);
+            // ===== SALIN KEY KE CLIPBOARD =====
+            copyKeyBtn.addEventListener('click', function() {
+                navigator.clipboard.writeText(currentRoomKey).then(() => {
+                    alert(`Key "${currentRoomKey}" disalin!`);
+                }).catch(() => {
+                    alert('Gagal menyalin, salin manual: ' + currentRoomKey);
+                });
+            });
 
-            // My Uploads: tidak ada dummy file, array kosong
+            // Inisialisasi room
+            roomKeyInput.value = currentRoomKey;
+            updateRoomUI(currentRoomKey);
+
+            // My Uploads: kosong, tanpa dummy
             renderMyFiles();
         })();
     </script>
