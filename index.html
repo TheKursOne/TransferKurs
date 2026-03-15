@@ -1,653 +1,140 @@
 <!DOCTYPE html>
-<html lang="id">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>FileShare - Transfer File P2P</title>
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+<meta charset="UTF-8">
+<title>SoliCAN - Soli Scan</title>
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            padding: 20px;
-        }
+<script src="https://unpkg.com/@zxing/library@latest"></script>
 
-        .container {
-            background: white;
-            border-radius: 20px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            max-width: 800px;
-            width: 100%;
-            padding: 40px;
-        }
+<style>
+body{
+font-family:Arial;
+background:#0f0f0f;
+color:white;
+text-align:center;
+padding:20px;
+}
 
-        h1 {
-            color: #667eea;
-            text-align: center;
-            margin-bottom: 10px;
-            font-size: 2.5em;
-        }
+h1{
+color:#00ff88;
+}
 
-        .subtitle {
-            text-align: center;
-            color: #666;
-            margin-bottom: 30px;
-        }
+video{
+width:320px;
+border-radius:10px;
+margin-top:10px;
+}
 
-        .tabs {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 30px;
-            border-bottom: 2px solid #eee;
-        }
+#preview{
+max-width:320px;
+margin-top:10px;
+border-radius:10px;
+}
 
-        .tab {
-            padding: 15px 30px;
-            background: none;
-            border: none;
-            cursor: pointer;
-            font-size: 16px;
-            color: #666;
-            transition: all 0.3s;
-            position: relative;
-        }
+#hasil{
+margin-top:20px;
+background:#1e1e1e;
+padding:15px;
+border-radius:10px;
+word-break:break-all;
+}
 
-        .tab.active {
-            color: #667eea;
-            font-weight: bold;
-        }
+button{
+padding:10px 15px;
+margin:10px;
+border:none;
+border-radius:6px;
+background:#00ff88;
+cursor:pointer;
+}
 
-        .tab.active::after {
-            content: '';
-            position: absolute;
-            bottom: -2px;
-            left: 0;
-            right: 0;
-            height: 2px;
-            background: #667eea;
-        }
-
-        .tab-content {
-            display: none;
-        }
-
-        .tab-content.active {
-            display: block;
-        }
-
-        .upload-area {
-            border: 3px dashed #667eea;
-            border-radius: 15px;
-            padding: 60px 20px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s;
-            margin-bottom: 20px;
-        }
-
-        .upload-area:hover {
-            background: #f8f9ff;
-            border-color: #764ba2;
-        }
-
-        .upload-area.dragover {
-            background: #f0f4ff;
-            border-color: #764ba2;
-            transform: scale(1.02);
-        }
-
-        .upload-icon {
-            font-size: 60px;
-            margin-bottom: 20px;
-        }
-
-        input[type="file"] {
-            display: none;
-        }
-
-        .code-display {
-            background: #f5f5f5;
-            padding: 20px;
-            border-radius: 10px;
-            text-align: center;
-            margin: 20px 0;
-            display: none;
-        }
-
-        .code-display.active {
-            display: block;
-        }
-
-        .share-code {
-            font-size: 48px;
-            font-weight: bold;
-            color: #667eea;
-            letter-spacing: 10px;
-            font-family: 'Courier New', monospace;
-            margin: 20px 0;
-        }
-
-        .input-group {
-            margin-bottom: 20px;
-        }
-
-        input[type="text"] {
-            width: 100%;
-            padding: 15px;
-            border: 2px solid #ddd;
-            border-radius: 10px;
-            font-size: 24px;
-            text-align: center;
-            letter-spacing: 8px;
-            font-family: 'Courier New', monospace;
-            text-transform: uppercase;
-        }
-
-        input[type="text"]:focus {
-            outline: none;
-            border-color: #667eea;
-        }
-
-        button {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            color: white;
-            border: none;
-            padding: 15px 40px;
-            border-radius: 10px;
-            font-size: 16px;
-            cursor: pointer;
-            transition: all 0.3s;
-            width: 100%;
-            font-weight: bold;
-        }
-
-        button:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 20px rgba(102, 126, 234, 0.3);
-        }
-
-        button:disabled {
-            background: #ccc;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        .file-info {
-            background: #f8f9ff;
-            padding: 15px;
-            border-radius: 10px;
-            margin: 15px 0;
-            display: none;
-        }
-
-        .file-info.active {
-            display: block;
-        }
-
-        .file-name {
-            font-weight: bold;
-            color: #333;
-            margin-bottom: 5px;
-        }
-
-        .file-size {
-            color: #666;
-            font-size: 14px;
-        }
-
-        .progress-container {
-            margin: 20px 0;
-            display: none;
-        }
-
-        .progress-container.active {
-            display: block;
-        }
-
-        .progress-bar {
-            width: 100%;
-            height: 30px;
-            background: #eee;
-            border-radius: 15px;
-            overflow: hidden;
-            position: relative;
-        }
-
-        .progress-fill {
-            height: 100%;
-            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
-            width: 0%;
-            transition: width 0.3s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            font-weight: bold;
-        }
-
-        .status {
-            text-align: center;
-            margin: 15px 0;
-            color: #666;
-            font-size: 14px;
-        }
-
-        .connection-status {
-            display: inline-block;
-            padding: 5px 15px;
-            border-radius: 20px;
-            font-size: 12px;
-            margin: 10px 0;
-        }
-
-        .connection-status.connected {
-            background: #d4edda;
-            color: #155724;
-        }
-
-        .connection-status.connecting {
-            background: #fff3cd;
-            color: #856404;
-        }
-
-        .connection-status.disconnected {
-            background: #f8d7da;
-            color: #721c24;
-        }
-
-        .instructions {
-            background: #f8f9ff;
-            padding: 20px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-        }
-
-        .instructions h3 {
-            color: #667eea;
-            margin-bottom: 10px;
-        }
-
-        .instructions ol {
-            margin-left: 20px;
-            color: #666;
-        }
-
-        .instructions li {
-            margin: 5px 0;
-        }
-    </style>
+a{
+color:#00ffcc;
+}
+</style>
 </head>
+
 <body>
-    <div class="container">
-        <h1>📁 FileShare</h1>
-        <p class="subtitle">Transfer file peer-to-peer tanpa batas ukuran</p>
 
-        <div class="tabs">
-            <button class="tab active" onclick="switchTab('send')">📤 Kirim File</button>
-            <button class="tab" onclick="switchTab('receive')">📥 Terima File</button>
-        </div>
+<h1>SoliCAN</h1>
+<p>Scan QR / Barcode dari kamera atau upload gambar</p>
 
-        <!-- Tab Kirim -->
-        <div id="send-tab" class="tab-content active">
-            <div class="instructions">
-                <h3>Cara Mengirim:</h3>
-                <ol>
-                    <li>Pilih file yang ingin dikirim</li>
-                    <li>Bagikan kode 6 digit yang muncul</li>
-                    <li>Tunggu penerima terhubung</li>
-                    <li>File akan otomatis terkirim</li>
-                </ol>
-            </div>
+<button onclick="startCamera()">Scan Kamera</button>
 
-            <div class="upload-area" id="uploadArea" onclick="document.getElementById('fileInput').click()">
-                <div class="upload-icon">📎</div>
-                <h3>Klik atau seret file ke sini</h3>
-                <p>Tidak ada batasan ukuran file</p>
-            </div>
-            <input type="file" id="fileInput">
+<br>
 
-            <div class="file-info" id="fileInfo">
-                <div class="file-name" id="fileName"></div>
-                <div class="file-size" id="fileSize"></div>
-            </div>
+<video id="video"></video>
 
-            <div class="code-display" id="codeDisplay">
-                <h3>Kode Transfer:</h3>
-                <div class="share-code" id="shareCode">------</div>
-                <p>Bagikan kode ini kepada penerima</p>
-                <div class="connection-status disconnected" id="senderStatus">Menunggu penerima...</div>
-            </div>
+<br><br>
 
-            <div class="progress-container" id="sendProgress">
-                <div class="progress-bar">
-                    <div class="progress-fill" id="sendProgressFill">0%</div>
-                </div>
-                <div class="status" id="sendStatus"></div>
-            </div>
-        </div>
+<input type="file" id="fileInput" accept="image/*">
 
-        <!-- Tab Terima -->
-        <div id="receive-tab" class="tab-content">
-            <div class="instructions">
-                <h3>Cara Menerima:</h3>
-                <ol>
-                    <li>Minta kode 6 digit dari pengirim</li>
-                    <li>Masukkan kode di bawah ini</li>
-                    <li>Klik "Terima File"</li>
-                    <li>File akan otomatis terunduh</li>
-                </ol>
-            </div>
+<br>
 
-            <div class="input-group">
-                <input type="text" id="codeInput" placeholder="------" maxlength="6" 
-                       oninput="this.value = this.value.toUpperCase()">
-            </div>
+<img id="preview">
 
-            <button onclick="connectToSender()">Terima File</button>
+<div id="hasil">Belum ada hasil</div>
 
-            <div class="connection-status disconnected" id="receiverStatus" style="margin-top: 20px; display: none;">
-                Menghubungkan...
-            </div>
+<script>
 
-            <div class="file-info" id="receiveFileInfo">
-                <div class="file-name" id="receiveFileName"></div>
-                <div class="file-size" id="receiveFileSize"></div>
-            </div>
+const codeReader = new ZXing.BrowserMultiFormatReader();
+const video = document.getElementById("video");
+const hasil = document.getElementById("hasil");
 
-            <div class="progress-container" id="receiveProgress">
-                <div class="progress-bar">
-                    <div class="progress-fill" id="receiveProgressFill">0%</div>
-                </div>
-                <div class="status" id="receiveStatus"></div>
-            </div>
-        </div>
-    </div>
+function tampilkan(text){
 
-    <script>
-        // WebRTC Configuration
-        const config = {
-            iceServers: [
-                { urls: 'stun:stun.l.google.com:19302' },
-                { urls: 'stun:stun1.l.google.com:19302' }
-            ]
-        };
+hasil.innerHTML =
+"Link ditemukan:<br><a href='"+text+"' target='_blank'>"+text+"</a>";
 
-        let peerConnection = null;
-        let dataChannel = null;
-        let selectedFile = null;
-        let sessionCode = null;
-        let signalingData = {};
+}
 
-        // Tab switching
-        function switchTab(tab) {
-            document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-            
-            event.target.classList.add('active');
-            document.getElementById(tab + '-tab').classList.add('active');
-        }
+/* SCAN KAMERA */
 
-        // Generate random 6-digit code
-        function generateCode() {
-            return Math.random().toString(36).substring(2, 8).toUpperCase();
-        }
+function startCamera(){
 
-        // File upload handling
-        const uploadArea = document.getElementById('uploadArea');
-        const fileInput = document.getElementById('fileInput');
+codeReader.decodeFromVideoDevice(null, video, (result, err) => {
 
-        uploadArea.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            uploadArea.classList.add('dragover');
-        });
+if(result){
+tampilkan(result.text);
+}
 
-        uploadArea.addEventListener('dragleave', () => {
-            uploadArea.classList.remove('dragover');
-        });
+});
 
-        uploadArea.addEventListener('drop', (e) => {
-            e.preventDefault();
-            uploadArea.classList.remove('dragover');
-            const file = e.dataTransfer.files[0];
-            if (file) handleFileSelect(file);
-        });
+}
 
-        fileInput.addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if (file) handleFileSelect(file);
-        });
+/* SCAN FILE */
 
-        function handleFileSelect(file) {
-            selectedFile = file;
-            document.getElementById('fileName').textContent = file.name;
-            document.getElementById('fileSize').textContent = formatBytes(file.size);
-            document.getElementById('fileInfo').classList.add('active');
-            
-            sessionCode = generateCode();
-            document.getElementById('shareCode').textContent = sessionCode;
-            document.getElementById('codeDisplay').classList.add('active');
-            
-            setupSender();
-        }
+document.getElementById("fileInput").addEventListener("change", function(e){
 
-        function formatBytes(bytes) {
-            if (bytes === 0) return '0 Bytes';
-            const k = 1024;
-            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-            const i = Math.floor(Math.log(bytes) / Math.log(k));
-            return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
-        }
+const file = e.target.files[0];
+if(!file) return;
 
-        // Sender setup
-        async function setupSender() {
-            peerConnection = new RTCPeerConnection(config);
-            
-            dataChannel = peerConnection.createDataChannel('fileTransfer');
-            dataChannel.binaryType = 'arraybuffer';
-            
-            dataChannel.onopen = () => {
-                document.getElementById('senderStatus').textContent = 'Terhubung!';
-                document.getElementById('senderStatus').className = 'connection-status connected';
-                sendFile();
-            };
+const preview = document.getElementById("preview");
+preview.src = URL.createObjectURL(file);
 
-            dataChannel.onclose = () => {
-                document.getElementById('senderStatus').textContent = 'Terputus';
-                document.getElementById('senderStatus').className = 'connection-status disconnected';
-            };
+const reader = new FileReader();
 
-            peerConnection.onicecandidate = (event) => {
-                if (event.candidate) {
-                    signalingData[sessionCode] = {
-                        type: 'offer',
-                        offer: peerConnection.localDescription,
-                        candidates: signalingData[sessionCode]?.candidates || []
-                    };
-                    signalingData[sessionCode].candidates.push(event.candidate);
-                    localStorage.setItem('signaling', JSON.stringify(signalingData));
-                }
-            };
+reader.onload = function(){
 
-            const offer = await peerConnection.createOffer();
-            await peerConnection.setLocalDescription(offer);
-            
-            signalingData[sessionCode] = {
-                type: 'offer',
-                offer: offer,
-                candidates: []
-            };
-            localStorage.setItem('signaling', JSON.stringify(signalingData));
-            
-            checkForAnswer();
-        }
+codeReader.decodeFromImage(undefined, reader.result)
+.then(result => {
 
-        function checkForAnswer() {
-            const interval = setInterval(() => {
-                const data = JSON.parse(localStorage.getItem('signaling') || '{}');
-                if (data[sessionCode]?.answer) {
-                    clearInterval(interval);
-                    peerConnection.setRemoteDescription(new RTCSessionDescription(data[sessionCode].answer));
-                    
-                    if (data[sessionCode].receiverCandidates) {
-                        data[sessionCode].receiverCandidates.forEach(candidate => {
-                            peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
-                        });
-                    }
-                }
-            }, 1000);
-        }
+tampilkan(result.text);
 
-        async function sendFile() {
-            if (!selectedFile || !dataChannel) return;
-            
-            document.getElementById('sendProgress').classList.add('active');
-            
-            const metadata = JSON.stringify({
-                name: selectedFile.name,
-                size: selectedFile.size,
-                type: selectedFile.type
-            });
-            dataChannel.send(metadata);
-            
-            const chunkSize = 16384;
-            const totalChunks = Math.ceil(selectedFile.size / chunkSize);
-            let offset = 0;
-            let chunksSent = 0;
+})
+.catch(() => {
 
-            const reader = new FileReader();
-            
-            reader.onload = (e) => {
-                dataChannel.send(e.target.result);
-                offset += e.target.result.byteLength;
-                chunksSent++;
-                
-                const progress = Math.round((chunksSent / totalChunks) * 100);
-                document.getElementById('sendProgressFill').style.width = progress + '%';
-                document.getElementById('sendProgressFill').textContent = progress + '%';
-                document.getElementById('sendStatus').textContent = 
-                    `Mengirim: ${formatBytes(offset)} / ${formatBytes(selectedFile.size)}`;
-                
-                if (offset < selectedFile.size) {
-                    readSlice(offset);
-                } else {
-                    document.getElementById('sendStatus').textContent = 'Transfer selesai!';
-                    setTimeout(() => {
-                        dataChannel.send('TRANSFER_COMPLETE');
-                    }, 100);
-                }
-            };
-            
-            function readSlice(o) {
-                const slice = selectedFile.slice(o, o + chunkSize);
-                reader.readAsArrayBuffer(slice);
-            }
-            
-            readSlice(0);
-        }
+hasil.innerText = "Barcode tidak terbaca";
 
-        // Receiver setup
-        async function connectToSender() {
-            const code = document.getElementById('codeInput').value.trim().toUpperCase();
-            if (code.length !== 6) {
-                alert('Masukkan kode 6 digit yang valid!');
-                return;
-            }
+});
 
-            document.getElementById('receiverStatus').style.display = 'inline-block';
-            document.getElementById('receiverStatus').textContent = 'Menghubungkan...';
-            document.getElementById('receiverStatus').className = 'connection-status connecting';
+};
 
-            const data = JSON.parse(localStorage.getItem('signaling') || '{}');
-            if (!data[code] || !data[code].offer) {
-                alert('Kode tidak valid atau pengirim belum siap!');
-                document.getElementById('receiverStatus').style.display = 'none';
-                return;
-            }
+reader.readAsDataURL(file);
 
-            peerConnection = new RTCPeerConnection(config);
-            
-            let receivedSize = 0;
-            let receivedChunks = [];
-            let fileMetadata = null;
+});
 
-            peerConnection.ondatachannel = (event) => {
-                dataChannel = event.channel;
-                dataChannel.binaryType = 'arraybuffer';
-                
-                dataChannel.onopen = () => {
-                    document.getElementById('receiverStatus').textContent = 'Terhubung!';
-                    document.getElementById('receiverStatus').className = 'connection-status connected';
-                };
+</script>
 
-                dataChannel.onmessage = (e) => {
-                    if (typeof e.data === 'string') {
-                        if (e.data === 'TRANSFER_COMPLETE') {
-                            saveFile();
-                            return;
-                        }
-                        fileMetadata = JSON.parse(e.data);
-                        document.getElementById('receiveFileName').textContent = fileMetadata.name;
-                        document.getElementById('receiveFileSize').textContent = formatBytes(fileMetadata.size);
-                        document.getElementById('receiveFileInfo').classList.add('active');
-                        document.getElementById('receiveProgress').classList.add('active');
-                    } else {
-                        receivedChunks.push(e.data);
-                        receivedSize += e.data.byteLength;
-                        
-                        const progress = Math.round((receivedSize / fileMetadata.size) * 100);
-                        document.getElementById('receiveProgressFill').style.width = progress + '%';
-                        document.getElementById('receiveProgressFill').textContent = progress + '%';
-                        document.getElementById('receiveStatus').textContent = 
-                            `Menerima: ${formatBytes(receivedSize)} / ${formatBytes(fileMetadata.size)}`;
-                    }
-                };
-            };
-
-            peerConnection.onicecandidate = (event) => {
-                if (event.candidate) {
-                    const signaling = JSON.parse(localStorage.getItem('signaling') || '{}');
-                    signaling[code].receiverCandidates = signaling[code].receiverCandidates || [];
-                    signaling[code].receiverCandidates.push(event.candidate);
-                    localStorage.setItem('signaling', JSON.stringify(signaling));
-                }
-            };
-
-            await peerConnection.setRemoteDescription(new RTCSessionDescription(data[code].offer));
-            
-            if (data[code].candidates) {
-                data[code].candidates.forEach(candidate => {
-                    peerConnection.addIceCandidate(new RTCIceCandidate(candidate));
-                });
-            }
-
-            const answer = await peerConnection.createAnswer();
-            await peerConnection.setLocalDescription(answer);
-            
-            const signaling = JSON.parse(localStorage.getItem('signaling') || '{}');
-            signaling[code].answer = answer;
-            localStorage.setItem('signaling', JSON.stringify(signaling));
-
-            function saveFile() {
-                const blob = new Blob(receivedChunks, { type: fileMetadata.type });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = fileMetadata.name;
-                a.click();
-                URL.revokeObjectURL(url);
-                
-                document.getElementById('receiveStatus').textContent = 'Download selesai!';
-            }
-        }
-    </script>
 </body>
 </html>
