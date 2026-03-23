@@ -1,4 +1,4 @@
-// api/s.js — CommonJS (Vercel Node.js default)
+// api/s.js — CommonJS
 const crypto = require('crypto');
 
 function makeToken(secret, w) {
@@ -30,14 +30,16 @@ module.exports = function handler(req, res) {
   res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
   res.setHeader('Content-Type', 'application/javascript');
 
-  // Escape backslash untuk regex di dalam template string JS
   const code = `
 var codeReader  = new ZXing.BrowserMultiFormatReader();
 var video       = document.getElementById("video");
 var hasil       = document.getElementById("hasil");
+var btnStart    = document.getElementById("btnStart");
+var btnStop     = document.getElementById("btnStop");
 var _lastResult = null;
 var _scanning   = false;
 
+/* ── BEEP ─────────────────────────────────────────────────── */
 function beep() {
   try {
     var ctx  = new (window.AudioContext || window.webkitAudioContext)();
@@ -51,12 +53,14 @@ function beep() {
   } catch(e) {}
 }
 
+/* ── FLASH ─────────────────────────────────────────────────── */
 function flash(el) {
   el.style.transition = 'background 0.1s';
   el.style.background = '#003322';
   setTimeout(function() { el.style.background = '#000'; }, 400);
 }
 
+/* ── TAMPILKAN HASIL ──────────────────────────────────────── */
 function tampilkan(text) {
   if (!text || text === _lastResult) return;
   _lastResult = text;
@@ -68,8 +72,7 @@ function tampilkan(text) {
     '<div style="word-break:break-all;font-size:14px;color:#00ffd0;margin-bottom:12px;">' +
       (isUrl
         ? '<a href="' + text + '" target="_blank" style="color:#00ffd0;">' + text + '</a>'
-        : '<span style="color:#fff;">' + text + '</span>'
-      ) +
+        : '<span style="color:#fff;">' + text + '</span>') +
     '</div>' +
     '<div style="display:flex;gap:8px;flex-wrap:wrap;">' +
       '<button id="btnSalin" onclick="salinHasil()" style="padding:8px 14px;background:#00ffd0;border:none;border-radius:6px;cursor:pointer;font-size:12px;width:auto;">Salin</button>' +
@@ -78,6 +81,7 @@ function tampilkan(text) {
     '</div>';
 }
 
+/* ── SALIN ─────────────────────────────────────────────────── */
 window.salinHasil = function() {
   if (!_lastResult) return;
   var btn = document.getElementById('btnSalin');
@@ -97,22 +101,52 @@ window.salinHasil = function() {
   }
 };
 
+/* ── RESET ─────────────────────────────────────────────────── */
 window.resetHasil = function() {
   _lastResult = null;
   hasil.innerHTML = 'Belum ada hasil';
   hasil.style.background = '#000';
 };
 
+/* ── START KAMERA ──────────────────────────────────────────── */
 window.startCamera = function() {
   if (_scanning) return;
   _scanning = true;
-  var btn = document.querySelector('button[onclick="startCamera()"]');
-  if (btn) { btn.textContent = 'Kamera Aktif...'; btn.style.opacity = '0.6'; btn.disabled = true; }
+
+  btnStart.textContent   = 'Kamera Aktif...';
+  btnStart.style.opacity = '0.5';
+  btnStart.disabled      = true;
+
+  // Tampilkan tombol stop (ikon) sebagai flex supaya centered
+  btnStop.style.display = 'flex';
+
   codeReader.decodeFromVideoDevice(null, video, function(result, err) {
     if (result && result.text) tampilkan(result.text);
   });
 };
 
+/* ── STOP KAMERA ───────────────────────────────────────────── */
+window.stopCamera = function() {
+  if (!_scanning) return;
+
+  codeReader.reset();
+
+  if (video.srcObject) {
+    video.srcObject.getTracks().forEach(function(t) { t.stop(); });
+    video.srcObject = null;
+  }
+
+  _scanning = false;
+
+  btnStart.textContent   = 'Aktifkan Kamera';
+  btnStart.style.opacity = '1';
+  btnStart.disabled      = false;
+
+  // Sembunyikan tombol stop lagi
+  btnStop.style.display = 'none';
+};
+
+/* ── UPLOAD ─────────────────────────────────────────────────── */
 document.getElementById("fileInput").addEventListener("change", function(e) {
   var file = e.target.files[0];
   if (!file) return;
