@@ -1,7 +1,3 @@
-// api/token.js
-// Generate token HMAC(timestamp, SECRET) yang expire 30 detik.
-// Tidak butuh auth — siapapun bisa minta token.
-// Token hanya berguna untuk /api/s selama 30 detik.
 
 import { createHmac } from 'crypto';
 
